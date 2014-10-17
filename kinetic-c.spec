@@ -37,6 +37,8 @@ Summary:	Header files for Kinetic C library
 Summary(pl.UTF-8):	Pliki nagłówkowe biblioteki C Kinetic
 Group:		Development/Libraries
 Requires:	%{name} = %{version}-%{release}
+Requires:	openssl-devel
+Requires:	protobuf-c-devel >= 1.0
 
 %description devel
 Header files for Kinetic C library.
