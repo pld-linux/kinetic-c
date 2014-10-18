@@ -1,6 +1,6 @@
 --- kinetic-c-0.6.0/Makefile.orig	2014-10-07 00:54:46.000000000 +0200
-+++ kinetic-c-0.6.0/Makefile	2014-10-14 22:04:07.222209100 +0200
-@@ -12,9 +12,10 @@
++++ kinetic-c-0.6.0/Makefile	2014-10-18 17:40:35.051702549 +0200
+@@ -12,15 +12,17 @@
  SOCKET99 = ./vendor/socket99
  VND_INC = ./vendor
  BIN = $(BIN_DIR)/kinetic_client
@@ -12,7 +12,15 @@
  INSTALL ?= install
  RM ?= rm
  
-@@ -39,10 +40,9 @@
+ KINETIC_LIB = $(BIN_DIR)/lib${PROJECT}.a
+ VERSION = $(shell head -n1 ./VERSION)
+-KINETIC_SO = $(BIN_DIR)/lib${PROJECT}.${VERSION}.so
++KINETIC_SO_NAME = lib${PROJECT}.${VERSION}.so
++KINETIC_SO = $(BIN_DIR)/$(KINETIC_SO_NAME)
+ UTIL_EXEC_NAME = $(UTILITY).$(VERSION)
+ UTIL_EXEC = $(BIN_DIR)/$(UTIL_EXEC_NAME)
+ UTIL_EXEC_DYN_NAME = $(UTILITY)
+@@ -37,10 +39,9 @@
  LIB_INCS = -I$(LIB_DIR) -I$(PUB_INC) -I$(PBC_INC) -I$(VND_INC)
  LIB_DEPS = $(PUB_INC)/kinetic_client.h $(PUB_INC)/kinetic_types.h $(LIB_DIR)/kinetic_connection.h $(LIB_DIR)/kinetic_hmac.h $(LIB_DIR)/kinetic_logger.h $(LIB_DIR)/kinetic_message.h $(LIB_DIR)/kinetic_nbo.h $(LIB_DIR)/kinetic_operation.h $(LIB_DIR)/kinetic_pdu.h $(LIB_DIR)/kinetic_proto.h $(LIB_DIR)/kinetic_socket.h
  # LIB_OBJ = $(patsubst %,$(OUT_DIR)/%,$(LIB_OBJS))
@@ -25,16 +33,16 @@
  
  test_all: Rakefile $(LIB_OBJS)
  	@echo
-@@ -101,7 +101,7 @@
+@@ -101,7 +102,7 @@
  	@echo --------------------------------------------------------------------------------
  	@echo Building $(KINETIC_SO) dynamic library
  	@echo --------------------------------------------------------------------------------
 -	$(CC) $(LIB_OBJS) -shared ${LDFLAGS} -o ${KINETIC_SO}
-+	$(CC) $(LIB_OBJS) -shared ${LDFLAGS} -Wl,-soname,${KINETIC_SO} -o ${KINETIC_SO}
++	$(CC) $(LIB_OBJS) -shared ${LDFLAGS} -Wl,-soname,${KINETIC_SO_NAME} -o ${KINETIC_SO}
  
  libso: $(KINETIC_SO)
  
-@@ -170,7 +171,7 @@
+@@ -171,7 +172,7 @@
  
  # Installation
  # Need to re-add ${KINETIC_SO}, once ready
@@ -43,7 +51,7 @@
  	@echo
  	@echo --------------------------------------------------------------------------------
  	@echo Installing $(PROJECT) v$(VERSION) into $(PREFIX)
-@@ -178,15 +179,13 @@
+@@ -179,15 +180,13 @@
  	@echo
  	@echo You may be prompted for your password in order to proceed.
  	@echo
@@ -52,7 +60,7 @@
 -	# ${INSTALL} -c ${KINETIC_SO} ${PREFIX}/lib/
 +	${INSTALL} -d ${PREFIX}/${LIB}/
 +	${INSTALL} -c ${KINETIC_LIB} ${PREFIX}/${LIB}/
-+	${INSTALL} -c ${KINETIC_SO} ${PREFIX}/${LIB}/ ; ln -s ${KINETIC_SO} ${PREFIX}/${LIB}/libkinetic-c-client.so
++	${INSTALL} -c ${KINETIC_SO} ${PREFIX}/${LIB}/ ; ln -s ${KINETIC_SO_NAME} ${PREFIX}/${LIB}/libkinetic-c-client.so
  	${INSTALL} -d ${PREFIX}/include/
  	${INSTALL} -c ./include/${API_NAME}.h ${PREFIX}/include/
  	${INSTALL} -c ./include/kinetic_types.h ${PREFIX}/include/
@@ -62,5 +70,3 @@
  
  uninstall:
  	@echo
---- ../BUILD/kinetic-c-0.6.0/Makefile.orig	2014-10-17 18:57:11.958468832 +0200
-+++ ../BUILD/kinetic-c-0.6.0/Makefile	2014-10-17 21:53:09.594692437 +0200
