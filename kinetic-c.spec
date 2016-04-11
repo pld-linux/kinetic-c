@@ -13,6 +13,7 @@ Source0:	https://github.com/Kinetic/kinetic-c/archive/%{version}/%{name}-%{versi
 # Source0-md5:	6e9816aeb2411ddf3c3159c0a6c1883a
 Patch0:		%{name}-make.patch
 Patch1:		%{name}-format.patch
+Patch2:		%{name}-gcc.patch
 URL:		https://github.com/Kinetic/kinetic-c/
 %{?with_apidocs:BuildRequires:	doxygen}
 BuildRequires:	json-c-devel
@@ -77,6 +78,7 @@ Dokumentacja API biblioteki C Kinetic.
 %setup -q
 %patch0 -p1
 %patch1 -p1
+%patch2 -p1
 
 %build
 LDFLAGS="%{rpmldflags}" \

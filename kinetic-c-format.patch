@@ -17,3 +17,41 @@
              e_id, e_id);
          (void)e_id;
  
+--- kinetic-c-0.12.0/src/lib/bus/listener_task.c.orig	2015-03-13 21:12:09.000000000 +0100
++++ kinetic-c-0.12.0/src/lib/bus/listener_task.c	2016-04-11 21:29:25.941285397 +0200
+@@ -163,7 +163,7 @@ static void tick_handler(listener *l) {
+             } else {
+                 BUS_LOG_SNPRINTF(b, 3, LOG_LISTENER, b->udata, 64,
+                     "decrementing countdown on info %p [%u]: %ld",
+-                    (void*)info, info->id, info->timeout_sec - 1);
++                    (void*)info, info->id, (long)info->timeout_sec - 1);
+                 info->timeout_sec--;
+             }
+             break;
+@@ -205,7 +205,7 @@ static void tick_handler(listener *l) {
+             } else {
+                 BUS_LOG_SNPRINTF(b, 3, LOG_LISTENER, b->udata, 64,
+                     "decrementing countdown on info %p [%u]: %ld",
+-                    (void*)info, info->id, info->timeout_sec - 1);
++                    (void*)info, info->id, (long)info->timeout_sec - 1);
+                 info->timeout_sec--;
+             }
+             break;
+@@ -223,7 +223,7 @@ void ListenerTask_DumpRXInfoTable(listen
+         rx_info_t *info = &l->rx_info[i];
+         
+         printf(" -- state: %d, info[%d]: timeout %ld",
+-            info->state, info->id, info->timeout_sec);
++            info->state, info->id, (long)info->timeout_sec);
+         switch (l->rx_info[i].state) {
+         case RIS_HOLD:
+             printf(", fd %d, seq_id %lld, has_result? %d\n",
+@@ -289,7 +289,7 @@ static void clean_up_completed_info(list
+         struct boxed_msg *box = info->u.expect.box;
+         if (box->result.status != BUS_SEND_SUCCESS) {
+             printf("*** info %d: info->timeout %ld\n",
+-                info->id, info->timeout_sec);
++                info->id, (long)info->timeout_sec);
+             printf("    info->error %d\n", info->u.expect.error);
+             printf("    info->box == %p\n", (void*)box);
+             printf("    info->box->result.status == %d\n", box->result.status);
