@@ -1,0 +1,35 @@
+--- kinetic-c-0.12.0/src/lib/bus/bus_types.h.orig	2015-03-13 21:12:09.000000000 +0100
++++ kinetic-c-0.12.0/src/lib/bus/bus_types.h	2016-04-11 21:22:45.880852697 +0200
+@@ -86,7 +86,7 @@ struct boxed_msg;
+         { \
+             BUS_LOG_SNPRINTF(B, 0, LOG_ASSERT, UDATA, 128, \
+                 "BUS FAILURE at %s:%d in %s: assert(" #COND ")", \
+-                __FILE__, (int)__LINE__, __FUNCTION__); \
++                __FILE__, (int)__LINE__, __func__); \
+             assert(COND); \
+         } \
+     } while(0)
+--- kinetic-c-0.12.0/src/lib/kinetic_logger.h.orig	2015-03-13 21:12:09.000000000 +0100
++++ kinetic-c-0.12.0/src/lib/kinetic_logger.h	2016-04-11 21:14:27.192069433 +0200
+@@ -63,7 +63,7 @@ int KineticLogger_ByteArraySliceToCStrin
+         if(!(cond)) \
+         { \
+             LOGF0("ASSERT FAILURE at %s:%d in %s: assert(" #cond ")", \
+-            __FILE__, (int)__LINE__, __FUNCTION__); \
++            __FILE__, (int)__LINE__, __func__); \
+             assert(cond); \
+         } \
+     }
+--- kinetic-c-0.12.0/src/lib/kinetic_types_internal.h.orig	2015-03-13 21:12:09.000000000 +0100
++++ kinetic-c-0.12.0/src/lib/kinetic_types_internal.h	2016-04-11 21:21:49.597978106 +0200
+@@ -38,10 +38,6 @@
+ #define KINETIC_CONNECTION_TIMEOUT_SECS (30) /* Java simulator may take longer than 10 seconds to respond */
+ #define KINETIC_OPERATION_TIMEOUT_SECS (20)
+ 
+-// Ensure __func__ is defined (for debugging)
+-#if !defined __func__
+-#define __func__ __FUNCTION__
+-#endif
+ 
+ // Expose normally private data for test builds to allow inspection
+ #ifdef TEST
