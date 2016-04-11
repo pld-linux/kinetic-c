@@ -1,72 +1,101 @@
---- kinetic-c-0.6.0/Makefile.orig	2014-10-07 00:54:46.000000000 +0200
-+++ kinetic-c-0.6.0/Makefile	2014-10-18 17:40:35.051702549 +0200
-@@ -12,15 +12,17 @@
- SOCKET99 = ./vendor/socket99
- VND_INC = ./vendor
- BIN = $(BIN_DIR)/kinetic_client
--LDFLAGS += -lm -l ssl -l kinetic-c-client -l crypto
-+LDFLAGS += -lm -lssl -lcrypto -lsocket99 -lprotobuf-c
+--- kinetic-c-0.12.0/Makefile.orig	2015-03-13 21:12:09.000000000 +0100
++++ kinetic-c-0.12.0/Makefile	2016-04-11 20:02:53.847011168 +0200
+@@ -27,7 +27,7 @@
+ WARN += -Werror
+ CDEFS += -D_POSIX_C_SOURCE=199309L -D_C99_SOURCE=1
+ CFLAGS += -std=c99 -fPIC -g $(WARN) $(CDEFS) $(OPTIMIZE)
+-LDFLAGS += -lm -L${OPENSSL_PATH}/lib -lcrypto -lssl -lpthread -ljson-c
++LDFLAGS += -lm -lcrypto -lssl -lpthread -ljson-c -lprotobuf-c -lsocket99
+ NUM_SIMS ?= 2
  
- PREFIX ?= /usr/local
-+LIB ?= lib
+ #===============================================================================
+@@ -47,18 +47,19 @@
+ VERSION = ${shell head -n1 $(VERSION_FILE)}
+ THREADPOOL_PATH = ${LIB_DIR}/threadpool
+ BUS_PATH = ${LIB_DIR}/bus
+-JSONC_LIB = ${OUT_DIR}/libjson-c.a
+ 
+ KINETIC_LIB_NAME = $(PROJECT).$(VERSION)
+ KINETIC_LIB = $(BIN_DIR)/lib$(KINETIC_LIB_NAME).a
+-LIB_INCS = -I$(LIB_DIR) -I$(PUB_INC) -I$(PROTOBUFC) -I$(SOCKET99) -I$(VENDOR) \
+-	-I$(JSONC) -I$(THREADPOOL_PATH) -I$(BUS_PATH) -I${OPENSSL_PATH}/include
++LIB_INCS = -I$(LIB_DIR) -I$(PUB_INC) -I/usr/include/protobuf-c -I/usr/include/socket99 -I$(VENDOR) \
++	-I/usr/include/json-c -I$(THREADPOOL_PATH) -I$(BUS_PATH) -I${OPENSSL_PATH}/include
+ 
+-C_SRC=${LIB_DIR}/*.[ch] $(SOCKET99)/socket99.[ch] $(PROTOBUFC)/protobuf-c/protobuf-c.[ch]
++KINETIC_SO_NAME = lib$(KINETIC_LIB_NAME).so
++KINETIC_SO_DEV = $(BIN_DIR)/$(KINETIC_SO_NAME)
++KINETIC_SO_RELEASE = $(PREFIX)$(LIB_DIR)/$(KINETIC_SO_NAME)
++
++C_SRC=${LIB_DIR}/*.[ch]
+ 
+ LIB_OBJS = \
+-	$(OUT_DIR)/socket99.o \
+-	$(OUT_DIR)/protobuf-c.o \
+ 	$(OUT_DIR)/kinetic_allocator.o \
+ 	$(OUT_DIR)/kinetic_nbo.o \
+ 	$(OUT_DIR)/kinetic_operation.o \
+@@ -105,7 +106,7 @@
+ KINETIC_LIB_OTHER_DEPS = Makefile Rakefile $(VERSION_FILE) $(VERSION_INFO)
+ 
+ 
+-default: makedirs $(KINETIC_LIB)
++default: makedirs $(KINETIC_LIB) $(KINETIC_SO_DEV)
+ 
+ makedirs:
+ 	@echo; mkdir -p ./bin/examples &> /dev/null; mkdir -p ./bin/unit &> /dev/null; mkdir -p ./bin/systest &> /dev/null; mkdir -p ./out &> /dev/null
+@@ -259,10 +260,7 @@
+ # Static and Dynamic Library Build Support
+ #-------------------------------------------------------------------------------
+ 
+-KINETIC_SO_DEV = $(BIN_DIR)/lib$(KINETIC_LIB_NAME).so
+-KINETIC_SO_RELEASE = $(PREFIX)/lib$(KINETIC_LIB_NAME).so
+-
+-$(KINETIC_LIB): $(KINETIC_LIB_OTHER_DEPS) $(LIB_OBJS) $(JSONC_LIB)
++$(KINETIC_LIB): $(KINETIC_LIB_OTHER_DEPS) $(LIB_OBJS)
+ 	@echo
+ 	@echo --------------------------------------------------------------------------------
+ 	@echo Building static library: $(KINETIC_LIB)
+@@ -270,12 +268,12 @@
+ 	ar -rcs $@ $(LIB_OBJS)
+ 	ar -t $@
+ 
+-$(KINETIC_SO_DEV): $(LIB_OBJS) $(KINETIC_LIB_OTHER_DEPS) $(JSONC_LIB)
++$(KINETIC_SO_DEV): $(LIB_OBJS) $(KINETIC_LIB_OTHER_DEPS)
+ 	@echo
+ 	@echo --------------------------------------------------------------------------------
+ 	@echo Building dynamic library: $(KINETIC_SO_DEV)
+ 	@echo --------------------------------------------------------------------------------
+-	$(CC) -o $@ -shared $(LDFLAGS) $(LIB_OBJS)
++	$(CC) -o $@ -shared $(LDFLAGS) -Wl,-soname,$(KINETIC_SO_NAME) $(LIB_OBJS)
+ 
+ 
+ #-------------------------------------------------------------------------------
+@@ -285,7 +283,7 @@
  INSTALL ?= install
  RM ?= rm
  
- KINETIC_LIB = $(BIN_DIR)/lib${PROJECT}.a
- VERSION = $(shell head -n1 ./VERSION)
--KINETIC_SO = $(BIN_DIR)/lib${PROJECT}.${VERSION}.so
-+KINETIC_SO_NAME = lib${PROJECT}.${VERSION}.so
-+KINETIC_SO = $(BIN_DIR)/$(KINETIC_SO_NAME)
- UTIL_EXEC_NAME = $(UTILITY).$(VERSION)
- UTIL_EXEC = $(BIN_DIR)/$(UTIL_EXEC_NAME)
- UTIL_EXEC_DYN_NAME = $(UTILITY)
-@@ -37,10 +39,9 @@
- LIB_INCS = -I$(LIB_DIR) -I$(PUB_INC) -I$(PBC_INC) -I$(VND_INC)
- LIB_DEPS = $(PUB_INC)/kinetic_client.h $(PUB_INC)/kinetic_types.h $(LIB_DIR)/kinetic_connection.h $(LIB_DIR)/kinetic_hmac.h $(LIB_DIR)/kinetic_logger.h $(LIB_DIR)/kinetic_message.h $(LIB_DIR)/kinetic_nbo.h $(LIB_DIR)/kinetic_operation.h $(LIB_DIR)/kinetic_pdu.h $(LIB_DIR)/kinetic_proto.h $(LIB_DIR)/kinetic_socket.h
- # LIB_OBJ = $(patsubst %,$(OUT_DIR)/%,$(LIB_OBJS))
--LIB_OBJS = $(OUT_DIR)/kinetic_nbo.o $(OUT_DIR)/kinetic_operation.o $(OUT_DIR)/kinetic_pdu.o $(OUT_DIR)/kinetic_proto.o $(OUT_DIR)/kinetic_socket.o $(OUT_DIR)/kinetic_message.o $(OUT_DIR)/kinetic_logger.o $(OUT_DIR)/kinetic_hmac.o $(OUT_DIR)/kinetic_connection.o $(OUT_DIR)/kinetic_types.o $(OUT_DIR)/kinetic_client.o $(OUT_DIR)/socket99.o $(OUT_DIR)/protobuf-c.o
-+LIB_OBJS = $(OUT_DIR)/kinetic_nbo.o $(OUT_DIR)/kinetic_operation.o $(OUT_DIR)/kinetic_pdu.o $(OUT_DIR)/kinetic_proto.o $(OUT_DIR)/kinetic_socket.o $(OUT_DIR)/kinetic_message.o $(OUT_DIR)/kinetic_logger.o $(OUT_DIR)/kinetic_hmac.o $(OUT_DIR)/kinetic_connection.o $(OUT_DIR)/kinetic_types.o $(OUT_DIR)/kinetic_client.o
- 
--# default: $(KINETIC_SO)
--default: $(KINETIC_LIB)
-+default: $(KINETIC_LIB) $(KINETIC_SO)
- 
- test_all: Rakefile $(LIB_OBJS)
- 	@echo
-@@ -101,7 +102,7 @@
- 	@echo --------------------------------------------------------------------------------
- 	@echo Building $(KINETIC_SO) dynamic library
- 	@echo --------------------------------------------------------------------------------
--	$(CC) $(LIB_OBJS) -shared ${LDFLAGS} -o ${KINETIC_SO}
-+	$(CC) $(LIB_OBJS) -shared ${LDFLAGS} -Wl,-soname,${KINETIC_SO_NAME} -o ${KINETIC_SO}
- 
- libso: $(KINETIC_SO)
- 
-@@ -171,7 +172,7 @@
- 
- # Installation
- # Need to re-add ${KINETIC_SO}, once ready
--install: ${KINETIC_LIB} VERSION
-+install: ${KINETIC_SO} ${KINETIC_LIB} VERSION
+-install: ${JSONC_LIB} json_install $(KINETIC_LIB) $(KINETIC_SO_DEV)
++install: $(KINETIC_LIB) $(KINETIC_SO_DEV)
  	@echo
  	@echo --------------------------------------------------------------------------------
  	@echo Installing $(PROJECT) v$(VERSION) into $(PREFIX)
-@@ -179,15 +180,13 @@
+@@ -293,6 +291,8 @@
  	@echo
- 	@echo You may be prompted for your password in order to proceed.
- 	@echo
--	${INSTALL} -d ${PREFIX}/lib/
--	${INSTALL} -c ${KINETIC_LIB} ${PREFIX}/lib/
--	# ${INSTALL} -c ${KINETIC_SO} ${PREFIX}/lib/
-+	${INSTALL} -d ${PREFIX}/${LIB}/
-+	${INSTALL} -c ${KINETIC_LIB} ${PREFIX}/${LIB}/
-+	${INSTALL} -c ${KINETIC_SO} ${PREFIX}/${LIB}/ ; ln -s ${KINETIC_SO_NAME} ${PREFIX}/${LIB}/libkinetic-c-client.so
- 	${INSTALL} -d ${PREFIX}/include/
- 	${INSTALL} -c ./include/${API_NAME}.h ${PREFIX}/include/
- 	${INSTALL} -c ./include/kinetic_types.h ${PREFIX}/include/
- 	${INSTALL} -c ./src/lib/kinetic_proto.h ${PREFIX}/include/
--	${INSTALL} -d ${PREFIX}/include/protobuf-c
--	${INSTALL} -c ./vendor/protobuf-c/protobuf-c/protobuf-c.h ${PREFIX}/include/protobuf-c/
+ 	$(INSTALL) -d $(PREFIX)${LIBDIR}
+-	$(INSTALL) -c $(KINETIC_LIB) $(PREFIX)${LIBDIR}/
++	$(INSTALL) -c $(KINETIC_SO_DEV) $(PREFIX)${LIBDIR}/
++	$(INSTALL) -c $(KINETIC_LIB) $(PREFIX)${LIBDIR}/libkinetic-c-client.a
++	ln -s $(KINETIC_SO_NAME) $(PREFIX)$(LIBDIR)/libkinetic-c-client.so
+ 	$(INSTALL) -d $(PREFIX)/include/
+ 	$(INSTALL) -c $(PUB_INC)/kinetic_client.h $(PREFIX)/include/
+ 	$(INSTALL) -c $(PUB_INC)/kinetic_admin_client.h $(PREFIX)/include/
+@@ -425,7 +425,7 @@
+ $(OUT_DIR)/discovery.o: $(DISCOVERY_UTIL_DIR)/discovery.c
+ 	$(CC) -c -o $@ $< $(CFLAGS) -I$(PUB_INC) -I$(DISCOVERY_UTIL_DIR) $(LIB_INCS)
  
- uninstall:
+-$(DISCOVERY_UTIL_EXEC): $(DISCOVERY_UTIL_OBJ) $(KINETIC_LIB) $(JSONC_LIB)
++$(DISCOVERY_UTIL_EXEC): $(DISCOVERY_UTIL_OBJ) $(KINETIC_LIB)
  	@echo
+ 	@echo --------------------------------------------------------------------------------
+ 	@echo Building service discovery utility: $(DISCOVERY_UTIL_EXEC)

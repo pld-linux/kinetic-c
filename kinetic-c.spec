@@ -5,17 +5,21 @@
 Summary:	Kinetic C client library
 Summary(pl.UTF-8):	Biblioteka kliencka C Kinetic
 Name:		kinetic-c
-Version:	0.6.0
+Version:	0.12.0
 Release:	1
 License:	GPL v2+
 Group:		Libraries
-Source0:	https://github.com/Seagate/kinetic-c/archive/%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	5f88679259cf90b7ccdddbb1cd3b64cc
+Source0:	https://github.com/Kinetic/kinetic-c/archive/%{version}/%{name}-%{version}.tar.gz
+# Source0-md5:	6e9816aeb2411ddf3c3159c0a6c1883a
 Patch0:		%{name}-make.patch
-URL:		https://github.com/Seagate/kinetic-c/
+Patch1:		%{name}-format.patch
+URL:		https://github.com/Kinetic/kinetic-c/
 %{?with_apidocs:BuildRequires:	doxygen}
+BuildRequires:	json-c-devel
+BuildRequires:	kinetic-protocol >= 3.0.5
 BuildRequires:	openssl-devel
-BuildRequires:	protobuf-c-devel >= 1.0
+BuildRequires:	protobuf-c-devel >= 1.1.0
+BuildRequires:	protobuf-devel >= 2.6.0
 BuildRequires:	socket99-devel
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -72,12 +76,13 @@ Dokumentacja API biblioteki C Kinetic.
 %prep
 %setup -q
 %patch0 -p1
+%patch1 -p1
 
 %build
 LDFLAGS="%{rpmldflags}" \
 %{__make} \
 	CC="%{__cc}" \
-	OPTIMIZE="%{rpmcflags} %{rpmcppflags}"
+	OPTIMIZE="%{rpmcflags} %{rpmcppflags} -D_GNU_SOURCE"
 
 %if %{with apidocs}
 doxygen config/Doxyfile
@@ -88,7 +93,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %{__make} install \
 	PREFIX=$RPM_BUILD_ROOT%{_prefix} \
-	LIB=%{_lib}
+	LIBDIR=/%{_lib}
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -104,8 +109,10 @@ rm -rf $RPM_BUILD_ROOT
 %files devel
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libkinetic-c-client.so
+%{_includedir}/byte_array.h
+%{_includedir}/kinetic_admin_client.h
 %{_includedir}/kinetic_client.h
-%{_includedir}/kinetic_proto.h
+%{_includedir}/kinetic_semaphore.h
 %{_includedir}/kinetic_types.h
 
 %files static
@@ -115,5 +122,5 @@ rm -rf $RPM_BUILD_ROOT
 %if %{with apidocs}
 %files apidocs
 %defattr(644,root,root,755)
-%doc docs/*.{css,html,js,png}
+%doc docs/api/*.{css,html,js,png}
 %endif

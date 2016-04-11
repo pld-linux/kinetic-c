@@ -1,0 +1,19 @@
+--- kinetic-c-0.12.0/src/lib/bus/listener_io.c.orig	2015-03-13 21:12:09.000000000 +0100
++++ kinetic-c-0.12.0/src/lib/bus/listener_io.c	2016-04-11 19:38:20.167072962 +0200
+@@ -22,6 +22,7 @@
+ 
+ #include <unistd.h>
+ #include <assert.h>
++#include <inttypes.h>
+ 
+ #include "listener_task.h"
+ #include "syscall.h"
+@@ -381,7 +382,7 @@
+     } else {
+         uintptr_t e_id = result.u.error.opaque_error_id;
+         BUS_LOG_SNPRINTF(b, 1, LOG_LISTENER, b->udata, 128,
+-            "Got opaque_error_id of %lu (0x%08lx)",
++            "Got opaque_error_id of %"PRIuPTR" (0x%08"PRIxPTR")",
+             e_id, e_id);
+         (void)e_id;
+ 
