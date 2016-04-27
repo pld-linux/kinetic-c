@@ -1,12 +1,12 @@
 #
 # Conditional build:
 %bcond_without	apidocs		# do not build and package API docs
-#
+
 Summary:	Kinetic C client library
 Summary(pl.UTF-8):	Biblioteka kliencka C Kinetic
 Name:		kinetic-c
 Version:	0.12.0
-Release:	1
+Release:	2
 License:	GPL v2+
 Group:		Libraries
 Source0:	https://github.com/Kinetic/kinetic-c/archive/%{version}/%{name}-%{version}.tar.gz
@@ -67,6 +67,9 @@ Statyczna biblioteka C Kinetic.
 Summary:	Kinetic C API documentation
 Summary(pl.UTF-8):	Dokumentacja API biblioteki C Kinetic
 Group:		Documentation
+%if "%{_rpmversion}" >= "5"
+BuildArch:	noarch
+%endif
 
 %description apidocs
 API documentation for Kinetic C library.
