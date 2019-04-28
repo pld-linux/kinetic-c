@@ -9,6 +9,7 @@ Version:	0.12.0
 Release:	2
 License:	GPL v2+
 Group:		Libraries
+#Source0Download: https://github.com/Kinetic/kinetic-c/releases
 Source0:	https://github.com/Kinetic/kinetic-c/archive/%{version}/%{name}-%{version}.tar.gz
 # Source0-md5:	6e9816aeb2411ddf3c3159c0a6c1883a
 Patch0:		%{name}-make.patch
